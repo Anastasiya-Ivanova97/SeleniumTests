@@ -124,7 +124,6 @@ class App {
 
     private void parse() {
         System.out.println("Введите путь до json-файла");
-        //JSON parser object to parse read file
         JSONParser jsonParser = new JSONParser();
         FileReader reader;
         try
