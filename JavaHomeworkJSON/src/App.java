@@ -1,17 +1,18 @@
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import java.io.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class App {
-    private List<String> lines = new ArrayList<>();
+class App {
     private List<Company> all = new ArrayList<>();
 
-    public void run() {
+    void run() {
         parse();
 
         printInfo();
@@ -45,95 +46,100 @@ public class App {
         }
     }
 
+    private Company parseCompany(JSONObject c){
+
+        long totalId = (Long)c.get("id");
+        String totalCode = (String)c.get("code");
+        String totalNameFull = (String)c.get("name_full");
+        String totalNameShort = (String)c.get("name_short");
+        String inn = (String)c.get("inn");
+
+        JSONObject jtype = (JSONObject) c.get("company_type");
+        long typeId = (Long)jtype.get("id");
+        String typeNameShort = (String)jtype.get("name_short");
+        String typeNameFull = (String)jtype.get("name_full");
+
+        String ogrn = (String)c.get("ogrn");
+        String egrul_date = (String)c.get("egrul_date");
+
+        JSONObject jcountry = (JSONObject) c.get("country");
+        long countryId =(Long) jcountry.get("id");
+        String countryCode =(String) jcountry.get("code");
+        String countryName =(String) jcountry.get("name");
+
+        String fioHead = (String)c.get("fio_head");
+        String address =(String) c.get("address");
+        String phone = (String)c.get("phone");
+        String eMail = (String)c.get("e_mail");
+        String www = (String)c.get("www");
+        boolean isResident = (Boolean)c.get("is_resident");
+        CompanyType companyType = new CompanyType((int)typeId, typeNameShort, typeNameFull);
+        Country country = new Country((int)countryId, countryCode, countryName);
+        LocalDateTime date = parseDateReverse(egrul_date);
+
+        Company company = new Company((int)totalId, totalCode, totalNameFull, totalNameShort, inn, companyType, ogrn, date, country,
+                fioHead, address, phone, eMail, www, isResident);
+
+        JSONArray jsecurities = (JSONArray) c.get("securities");
+        addSecurities(company, jsecurities);
+
+        return company;
+    }
+
+    private void addSecurities(Company company, JSONArray jsecurities){
+        List<Security> securities = new ArrayList<>();
+        for(Object o: jsecurities) {
+            JSONObject sec= (JSONObject)o;
+            long securityId = (Long)sec.get("id");
+            String securityCode = (String)sec.get("code");
+            String securityNameFull = (String)sec.get("name_full");
+            String securityCfi = (String)sec.get("cfi");
+            String securityDateTo = (String)sec.get("date_to");
+            String securityStateRegDate = (String)sec.get("state_reg_date");
+
+            JSONObject jstate = (JSONObject) sec.get("state");
+            long stateId = (Long)jstate.get("id");
+            String stateName = (String)jstate.get("name");
+
+            JSONObject jcurrency = (JSONObject) sec.get("currency");
+            long currencyId = (Long)jcurrency.get("id");
+            String currencyCode = (String)jcurrency.get("code");
+            String currencyNameShort = (String)jcurrency.get("name_short");
+            String currencyNameFull = (String)jcurrency.get("name_full");
+
+            LocalDateTime dateTo = parseDateReverse(securityDateTo);
+            LocalDateTime regDate = parseDateReverse(securityStateRegDate);
+
+            State state = new State((int)stateId, stateName);
+            Currency currency = new Currency((int)currencyId, currencyCode, currencyNameShort, currencyNameFull);
+
+            Security security = new Security((int)securityId, securityCode, securityNameFull, securityCfi, dateTo, regDate,
+                    state, currency);
+
+            securities.add(security);
+        }
+        company.setSecurities(securities);
+
+    }
+
     private void parse() {
         System.out.println("Введите путь до json-файла");
-        File file = new File(new Scanner(System.in).next());
-        try {
-            BufferedReader bufferedReader;
-            bufferedReader = new BufferedReader(new FileReader(file));
-            String line = bufferedReader.readLine();
-            while (line != null) {
-                lines.add(line);
-                line = bufferedReader.readLine();
+        //JSON parser object to parse read file
+        JSONParser jsonParser = new JSONParser();
+        FileReader reader;
+        try
+        {
+            reader = new FileReader(new Scanner(System.in).next());
+            JSONArray root =  (JSONArray)jsonParser.parse(reader);
+            for(Object o: root) {
+                all.add(parseCompany((JSONObject) o));
             }
-            bufferedReader.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-
-        int index = 2;
-
-        boolean hasNextCompany = true;
-
-        while (hasNextCompany) {
-            hasNextCompany = hasNext(index);
-
-            int totalId = getInt(index);
-            String totalCode = getValue(index + 1);
-            String totalNameFull = getValue(index + 2);
-            String totalNameShort = getValue(index + 3);
-            String inn = getValue(index + 4);
-            int typeId = getInt(index + 6);
-            String typeNameShort = getValue(index + 7);
-            String typeNameFull = getLast(index + 8);
-            String ogrn = getValue(index + 10);
-            String egrul_date = getValue(index + 11);
-            int countryId = getInt(index + 13);
-            String countryCode = getValue(index + 14);
-            String countryName = getLast(index + 15);
-            String fioHead = getValue(index + 17);
-            String address = getValue(index + 18);
-            String phone = getValue(index + 19);
-            String eMail = getValue(index + 20);
-            String www = getValue(index + 21);
-            boolean isResident = Boolean.parseBoolean(lines.get(index + 22).substring(
-                    lines.get(index + 22).indexOf(':') + 3, lines.get(index + 22).length() - 1));
-
-            CompanyType companyType = new CompanyType(typeId, typeNameShort, typeNameFull);
-            Country country = new Country(countryId, countryCode, countryName);
-            LocalDateTime date = parseDateReverse(egrul_date);
-
-            Company company = new Company(totalId, totalCode, totalNameFull, totalNameShort, inn, companyType, ogrn, date, country,
-                    fioHead, address, phone, eMail, www, isResident);
-
-            index += 25;
-
-            List<Security> securities = new ArrayList<>();
-
-            boolean hasNextSecurity = true;
-
-            while (hasNextSecurity) {
-                hasNextSecurity = hasNext(index);
-                int securityId = getInt(index);
-                String securityCode = getValue(index + 1);
-                String securityNameFull = getValue(index + 2);
-                String securityCfi = getValue(index + 3);
-                String securityDateTo = getValue(index + 4);
-                String securityStateRegDate = getValue(index + 5);
-                int stateId = getInt(index + 7);
-                String stateName = getLast(index + 8);
-                int currencyId = getInt(index + 11);
-                String currencyCode = getValue(index + 12);
-                String currencyNameShort = getValue(index + 13);
-                String currencyNameFull = getLast(index + 14);
-
-                LocalDateTime dateTo = parseDateReverse(securityDateTo);
-                LocalDateTime regDate = parseDateReverse(securityStateRegDate);
-
-                State state = new State(stateId, stateName);
-                Currency currency = new Currency(currencyId, currencyCode, currencyNameShort, currencyNameFull);
-
-                Security security = new Security(securityId, securityCode, securityNameFull, securityCfi, dateTo, regDate,
-                        state, currency);
-
-                securities.add(security);
-
-                index += 18;
-            }
-
-            company.setSecurities(securities);
-            all.add(company);
-            index += 3;
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
     }
 
@@ -160,38 +166,5 @@ public class App {
                 Integer.parseInt(date.substring(0, 2)),
                 0,
                 0);
-    }
-
-    private String getValue(int index) {
-        String line = lines.get(index);
-        return line.substring(line.indexOf(':') + 3, line.length() - 2);
-    }
-
-    private int getInt(int index) {
-        String line = lines.get(index);
-        return Integer.parseInt(line.substring(line.indexOf(':') + 2, line.length() - 1));
-    }
-
-    private String getLast(int index) {
-        String line = lines.get(index);
-        return line.substring(line.indexOf(':') + 3, line.length() - 1);
-    }
-
-    private boolean hasNext(int startIndex) {
-        int count = 1;
-        for (int i = startIndex + 1; i < lines.size(); i++) {
-            for (int j = 0; j < lines.get(i).length(); j++) {
-                if (lines.get(i).charAt(j) == '{') {
-                    count++;
-                }
-                if (lines.get(i).charAt(j) == '}') {
-                    count--;
-                }
-                if (count == 0) {
-                    return (j + 1) < lines.get(i).length() && lines.get(i).charAt(j + 1) == ',';
-                }
-            }
-        }
-        return false;
     }
 }
