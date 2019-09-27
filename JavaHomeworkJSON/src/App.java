@@ -1,11 +1,12 @@
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import java.io.*;
-import java.time.LocalDateTime;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
@@ -13,12 +14,48 @@ class App {
     private List<Company> all = new ArrayList<>();
 
     void run() {
-        parse();
+        boolean running = true;
+        while(running) {
+            boolean validFile = false;
 
-        printInfo();
-        printFinishedSecurities();
-        printCompaniesAfterDate("01.01.2000");
-        printSecuritiesByCurrency("USD");
+            while(!validFile) {
+                System.out.println("Введите путь до json-файла. " +
+                        "Напишите quit, чтобы закончить");
+                String filename = new Scanner(System.in).next();
+
+                if (filename.equals("quit")) {
+                    System.out.println("Заканчиваем работу...");
+                    running = false;
+                    break;
+                }
+
+                File file = new File(filename);
+                if (!file.exists()) {
+                    System.out.println("Такого файла не сущетсвует.");
+                    continue;
+                }
+                parse(filename);
+                printInfo();
+                printFinishedSecurities();
+                validFile = true;
+            }
+            while(running) {
+                System.out.println("Введите дату в формате dd.mm.yyyy. Напишите quit " +
+                        "чтобы выбрать другой файл:");
+                String input = new Scanner(System.in).next();
+                if (input.equals("quit")) {
+                    break;
+                }
+                printCompaniesAfterDate(input);
+                System.out.println("Введите название валюты USD/EUR/RUB. Напишите quit " +
+                        "чтобы выбрать другой файл:");
+                String currency = new Scanner(System.in).next();
+                if (currency.equals("quit")) {
+                    break;
+                }
+                printSecuritiesByCurrency("USD");
+            }
+        }
     }
 
     private void printInfo() {
@@ -32,18 +69,14 @@ class App {
     }
 
     private void printCompaniesAfterDate(String dateString) {
-        LocalDateTime date = parseDate(dateString);
-        for (Company company : all) {
-            if (company.hasCreatedAfterDate(date)) {
-                company.printInfo();
-            }
-        }
+        Date date = parseDate(dateString);
+        all.stream()
+                .filter(company -> company.hasCreatedAfterDate(date))
+                .forEach(Company::printInfo);
     }
 
     private void printSecuritiesByCurrency(String currency) {
-        for (Company company : all) {
-            company.printInfoByCode(currency);
-        }
+        all.forEach(company -> company.printInfoByCode(currency));
     }
 
     private Company parseCompany(JSONObject c){
@@ -75,7 +108,7 @@ class App {
         boolean isResident = (Boolean)c.get("is_resident");
         CompanyType companyType = new CompanyType((int)typeId, typeNameShort, typeNameFull);
         Country country = new Country((int)countryId, countryCode, countryName);
-        LocalDateTime date = parseDateReverse(egrul_date);
+        Date date = parseDateReverse(egrul_date);
 
         Company company = new Company((int)totalId, totalCode, totalNameFull, totalNameShort, inn, companyType, ogrn, date, country,
                 fioHead, address, phone, eMail, www, isResident);
@@ -107,8 +140,8 @@ class App {
             String currencyNameShort = (String)jcurrency.get("name_short");
             String currencyNameFull = (String)jcurrency.get("name_full");
 
-            LocalDateTime dateTo = parseDateReverse(securityDateTo);
-            LocalDateTime regDate = parseDateReverse(securityStateRegDate);
+            Date dateTo = parseDateReverse(securityDateTo);
+            Date regDate = parseDateReverse(securityStateRegDate);
 
             State state = new State((int)stateId, stateName);
             Currency currency = new Currency((int)currencyId, currencyCode, currencyNameShort, currencyNameFull);
@@ -122,49 +155,37 @@ class App {
 
     }
 
-    private void parse() {
-        System.out.println("Введите путь до json-файла");
-        //JSON parser object to parse read file
+    private void parse(String filename) {
         JSONParser jsonParser = new JSONParser();
         FileReader reader;
-        try
-        {
-            reader = new FileReader(new Scanner(System.in).next());
-            JSONArray root =  (JSONArray)jsonParser.parse(reader);
-            for(Object o: root) {
-                all.add(parseCompany((JSONObject) o));
-            }
-        } catch (FileNotFoundException e) {
+        try {
+            reader = new FileReader(filename);
+            JSONArray root = (JSONArray) jsonParser.parse(reader);
+            root.forEach(company -> all.add(parseCompany((JSONObject) company)));
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        }
+    }
+
+    private Date parseDateReverse(String date) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-mm-dd");
+        Date d = null;
+        try {
+            d = formatter.parse(date);
         } catch (ParseException e) {
             e.printStackTrace();
         }
+        return d;
     }
 
-    private LocalDateTime parseDateReverse(String date) {
-        return LocalDateTime.of(
-                Integer.parseInt(date.substring(0, 4)),
-                Integer.parseInt(date.substring(5, 7)),
-                Integer.parseInt(date.substring(8, 10)),
-                0,
-                0);
-    }
-
-    private LocalDateTime parseDate(String date) {
-        int year = Integer.parseInt(date.substring(6));
-        if (year < 1000) {
-            year += 2000;
-            if (year > 2050) {
-                year -= 100;
-            }
+    private Date parseDate(String date) {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd.mm.yyyy");
+        Date d = null;
+        try {
+            d = formatter.parse(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
-        return LocalDateTime.of(
-                year,
-                Integer.parseInt(date.substring(3, 5)),
-                Integer.parseInt(date.substring(0, 2)),
-                0,
-                0);
+        return d;
     }
 }

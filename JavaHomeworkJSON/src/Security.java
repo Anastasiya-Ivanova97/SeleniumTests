@@ -1,18 +1,20 @@
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 public class Security {
     private int id;
     private String code;
     private String name_full;
     private String cfi;
-    private LocalDateTime date_to;
-    private LocalDateTime state_reg_date;
+    private Date date_to;
+    private Date state_reg_date;
     private State state;
     private Currency currency;
 
-    public Security(int id, String code, String name_full, String cfi, LocalDateTime date_to,
-                    LocalDateTime state_reg_date, State state, Currency currency) {
+    Security(int id, String code, String name_full, String cfi, Date date_to,
+             Date state_reg_date, State state, Currency currency) {
         this.id = id;
         this.code = code;
         this.name_full = name_full;
@@ -28,23 +30,22 @@ public class Security {
         return id + code + name_full + cfi + date_to + state_reg_date;
     }
 
-    public boolean isExpired() {
-        return LocalDateTime.now().isAfter(date_to);
+    boolean isExpired() {
+        return new Date(System.currentTimeMillis()).after(date_to);
     }
 
-    public void printInfo() {
+    void printInfo() {
         System.out.println("Код: " + code);
-        System.out.println("Дата истечения: " + date_to.format(DateTimeFormatter.ofPattern("dd/MM/yy")));
+        System.out.println("Дата истечения: " +new SimpleDateFormat("dd/MM/yy").format(date_to));
         System.out.println("Название: " + name_full);
     }
 
-    public String getCurrencyCode() {
+    String getCurrencyCode() {
         return currency.getCode();
     }
 
-    public void printSecurityInfo() {
+    void printSecurityInfo() {
         System.out.println("id: " + id);
         System.out.println("code: " + code);
     }
 }
-

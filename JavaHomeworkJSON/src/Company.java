@@ -1,8 +1,11 @@
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class Company {
+class Company {
     private int id;
     private String code;
     private String name_full;
@@ -10,7 +13,7 @@ public class Company {
     private String inn;
     private CompanyType company_type;
     private String ogrn;
-    private LocalDateTime eqrul_date;
+    private Date eqrul_date;
     private Country country;
     private String fio_head;
     private String address;
@@ -20,9 +23,9 @@ public class Company {
     private boolean is_resident;
     private List<Security> securities;
 
-    public Company(int id, String code, String name_full, String name_short, String inn, CompanyType company_type,
-                   String ogrn, LocalDateTime eqrul_date, Country country, String fio_head, String address,
-                   String phone, String e_mail, String www, boolean is_resident) {
+    Company(int id, String code, String name_full, String name_short, String inn, CompanyType company_type,
+            String ogrn, Date eqrul_date, Country country, String fio_head, String address,
+            String phone, String e_mail, String www, boolean is_resident) {
         this.id = id;
         this.code = code;
         this.name_full = name_full;
@@ -40,16 +43,16 @@ public class Company {
         this.is_resident = is_resident;
     }
 
-    public void setSecurities(List<Security> securities) {
+    void setSecurities(List<Security> securities) {
         this.securities = securities;
     }
 
-    public void printInfo() {
+    void printInfo() {
         System.out.println("Краткое название: " + name_short + "\nДата основания: "
-                + eqrul_date.format(DateTimeFormatter.ofPattern("dd/MM/yy")));
+                + new SimpleDateFormat("dd/mm/yyyy").format(eqrul_date));
     }
 
-    public void printFinishedSecurities() {
+    void printFinishedSecurities() {
         securities.forEach(security -> {
             if (security.isExpired()) {
                 security.printInfo();
@@ -57,25 +60,19 @@ public class Company {
         });
     }
 
-    public int getFinishedSecuritiesCount() {
-        int count = 0;
-        for (Security security : securities) {
-            if (security.isExpired()) {
-                count++;
-            }
-        }
-        return count;
+    int getFinishedSecuritiesCount() {
+        return (int)securities.stream()
+                .filter(Security::isExpired)
+                .count();
     }
 
-    public boolean hasCreatedAfterDate(LocalDateTime date) {
-        return eqrul_date.isAfter(date);
+    boolean hasCreatedAfterDate(Date date) {
+        return eqrul_date.after(date);
     }
 
-    public void printInfoByCode(String code) {
-        for (Security security : securities) {
-            if (security.getCurrencyCode().equals(code)) {
-                security.printSecurityInfo();
-            }
-        }
+    void printInfoByCode(String code) {
+        securities.stream()
+                .filter(security -> security.getCurrencyCode().equals(code))
+                .forEach(Security::printSecurityInfo);
     }
 }

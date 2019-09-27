@@ -1,8 +1,8 @@
-public class State {
+class State {
     private int id;
     private String name;
 
-    public State(int id, String name) {
+    State(int id, String name) {
         this.id = id;
         this.name = name;
     }
