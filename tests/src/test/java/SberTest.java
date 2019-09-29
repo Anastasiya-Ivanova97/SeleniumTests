@@ -3,11 +3,12 @@ import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class SberTest extends WebDriverSettings{
 
     @Test
-    public void sbertest() throws InterruptedException {
+    public void sbertest() {
         String url = "http://www.sberbank.ru/ru/person";
 
         driver.get(url);
@@ -23,8 +24,9 @@ public class SberTest extends WebDriverSettings{
 
         String footerPath = "/html/body/div[1]/div[4]/div/div/div/div[3]/footer";
         WebElement element = driver.findElement(By.xpath(footerPath));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].scrollIntoView(true);", element);
-        Thread.sleep(500);
+        driver.executeScript("arguments[0].scrollIntoView(true);", element);
+
+        WebDriverWait wait = new WebDriverWait(driver,10);
 
         String soc = "/html/body/div[1]/div[4]/div/div/div/div[3]/footer/div/div[2]/div[3]/ul";
         WebElement social = driver.findElementByXPath(soc);
