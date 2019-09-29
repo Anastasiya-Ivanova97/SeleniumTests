@@ -12,13 +12,17 @@ public class SberTest extends WebDriverSettings{
         String url = "http://www.sberbank.ru/ru/person";
 
         driver.get(url);
+        
         String findGeoposition = "/html/body/div[1]/div[1]/div/div/div[4]/header/div/div/div/div[2]/div[3]/div/div/a/div/span";
         WebElement loc = driver.findElementByXPath(findGeoposition);
         loc.click();
+        
         String point = "/html/body/div[7]/div/div/div/div/div/div/div/div[3]/div[2]/a[17]";
         driver.findElementByXPath(point).click();
+        
         String location = "Нижегородская область";
         String newPath = "/html/body/div[1]/div[1]/div/div/div[4]/header/div/div/div/div[2]/div[3]/div/div/a/div/span";
+        
         loc = driver.findElementByXPath(newPath);
         Assert.assertEquals(location,loc.getText());
 
