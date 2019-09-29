@@ -11,7 +11,7 @@ public class InsuranceTest extends WebDriverSettings {
 
 
     @Test
-    public void firstTest() throws InterruptedException {
+    public void firstTest() {
         String url = "http://www.rgs.ru";
 
         driver.get(url);
@@ -20,8 +20,8 @@ public class InsuranceTest extends WebDriverSettings {
         WebElement element = driver.findElementByXPath(path1);
         element.click();
 
-        WebDriverWait wait2 = new WebDriverWait(driver, 10);
-        wait2.until(ExpectedConditions.elementToBeClickable(By.linkText("Добровольное медицинское страхование (ДМС)")));
+        WebDriverWait wait1 = new WebDriverWait(driver, 10);
+        wait1.until(ExpectedConditions.elementToBeClickable(By.linkText("Добровольное медицинское страхование (ДМС)")));
 
         String dmsPath = "/html/body/div[5]/div/div[1]/div[1]/div/a[1]";
 
@@ -29,7 +29,8 @@ public class InsuranceTest extends WebDriverSettings {
         JavascriptExecutor executor = driver;
         executor.executeScript("arguments[0].click();", ele);
 
-        Thread.sleep(2000);
+        WebDriverWait wait2 = new WebDriverWait(driver,10);
+
 
         String title = driver.getTitle();
         Assert.assertEquals("ДМС 2019 | Рассчитать стоимость добровольного медицинского страхования и оформить ДМС в Росгосстрах", title);
@@ -38,7 +39,7 @@ public class InsuranceTest extends WebDriverSettings {
         WebElement el = driver.findElementByXPath(form);
         el.click();
 
-        Thread.sleep(2000);
+        WebDriverWait wait3 = new WebDriverWait(driver,10);
 
         WebElement webElement = driver.findElementByXPath("/html/body/div[9]/div/div/div/div[1]/h4/b");
         Assert.assertEquals("Заявка на добровольное медицинское страхование", webElement.getText());
@@ -48,28 +49,62 @@ public class InsuranceTest extends WebDriverSettings {
         String findMiddleName = "/html/body/div[9]/div/div/div/div[2]/div[2]/form/div[2]/div[3]/input";
         String findRegion = "/html/body/div[9]/div/div/div/div[2]/div[2]/form/div[2]/div[4]/select";
         String phone = "/html/body/div[9]/div/div/div/div[2]/div[2]/form/div[2]/div[5]/input";
-        String mail = "/html/body/div[9]/div/div/div/div[2]/div[2]/form/div[2]/div[6]/input";
+        String mailField = "/html/body/div[9]/div/div/div/div[2]/div[2]/form/div[2]/div[6]/input";
         String comment = "/html/body/div[9]/div/div/div/div[2]/div[2]/form/div[2]/div[8]/textarea";
         String check = "/html/body/div[9]/div/div/div/div[2]/div[2]/form/div[2]/div[9]/label/input";
         String date = "/html/body/div[9]/div/div/div/div[2]/div[2]/form/div[2]/div[7]/input";
         String send = "/html/body/div[9]/div/div/div/div[2]/div[2]/form/div[2]/div[10]/div/button";
 
-        driver.findElementByXPath(findSurname).sendKeys("Фамилия");
-        driver.findElementByXPath(findName).sendKeys("Имя");
-        driver.findElementByXPath(findMiddleName).sendKeys("Отчество");
+        String surname = "Фамилия";
+        String name = "Имя";
+        String middleName = "Отчество";
+        String region = "Выберите...";
+        String number = "9999999999";
+        String mail = "qwertyqwerty";
+        String com = "Комментарии";
+        String fillDate = "01012020";
+
+
+
+        WebElement surnameField = driver.findElementByXPath(findSurname);
+        surnameField.sendKeys(surname);
+
+        WebElement nameField = driver.findElementByXPath(findName);
+        nameField.sendKeys(name);
+
+        WebElement middleNameField = driver.findElementByXPath(findMiddleName);
+        middleNameField.sendKeys(middleName);
+
         Select select = new Select(driver.findElementByXPath(findRegion));
-        select.selectByVisibleText("Выберите...");
+        select.selectByVisibleText(region);
+
         WebElement phoneField = driver.findElementByXPath(phone);
         phoneField.click();
         phoneField.clear();
-        phoneField.sendKeys("9999999999");
-        WebElement email = driver.findElementByXPath(mail);
-        email.sendKeys("qwertyqwerty");
-        driver.findElementByXPath(comment).sendKeys("Комментарии");
-        WebElement element1 = driver.findElementByXPath(check);
-        element1.click();
-        driver.findElementByXPath(date).sendKeys("01012020");
-        driver.findElementByXPath(send).click();
+        phoneField.sendKeys(number);
+
+        WebElement email = driver.findElementByXPath(mailField);
+        email.sendKeys(mail);
+
+        WebElement coms = driver.findElementByXPath(comment);
+        coms.sendKeys(com);
+
+        WebElement checkbox = driver.findElementByXPath(check);
+        checkbox.click();
+
+        WebElement dateField = driver.findElementByXPath(date);
+        dateField.sendKeys(fillDate);
+
+        WebElement apply = driver.findElementByXPath(send);
+        apply.click();
+
+        Assert.assertEquals(surname,surnameField.getText());
+        Assert.assertEquals(name,nameField.getText());
+        Assert.assertEquals(middleName,middleNameField.getText());
+        Assert.assertEquals(mail,email.getText());
+        Assert.assertEquals(com, coms.getText());
+
+
         String error = "Введите адрес электронной почты";
         String errorPath = "/html/body/div[9]/div/div/div/div[2]/div[2]/form/div[2]/div[6]/div/label/span";
         Assert.assertEquals(error, driver.findElementByXPath(errorPath).getText());
