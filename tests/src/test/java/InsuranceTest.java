@@ -15,17 +15,16 @@ public class InsuranceTest extends WebDriverSettings {
         String url = "http://www.rgs.ru";
 
         driver.get(url);
-
-        String path1 = "/html/body/div[4]/div/div[4]/a";
-        WebElement element = driver.findElementByXPath(path1);
+        String path1 = "[href=\"/products/private_person/health/index.wbp\"]";
+        WebElement element = driver.findElementByCssSelector(path1);
         element.click();
 
         WebDriverWait wait1 = new WebDriverWait(driver, 10);
         wait1.until(ExpectedConditions.elementToBeClickable(By.linkText("Добровольное медицинское страхование (ДМС)")));
 
-        String dmsPath = "/html/body/div[5]/div/div[1]/div[1]/div/a[1]";
+        String dmsPath = "[href=\"/products/private_person/health/dms/generalinfo/index.wbp\"]";
 
-        WebElement ele = driver.findElement(By.xpath(dmsPath));
+        WebElement ele = driver.findElement(By.cssSelector(dmsPath));
         JavascriptExecutor executor = driver;
         executor.executeScript("arguments[0].click();", ele);
 
