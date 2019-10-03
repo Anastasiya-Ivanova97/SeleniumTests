@@ -5,35 +5,30 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-public class SberTest extends WebDriverSettings{
+import java.util.concurrent.TimeUnit;
 
+public class SberTest extends WebDriverSettings{
+    private SberPaths sberPaths = new SberPaths();
     @Test
     public void sbertest() {
         String url = "http://www.sberbank.ru/ru/person";
 
         driver.get(url);
-        
-        String findGeoposition = "/html/body/div[1]/div[1]/div/div/div[4]/header/div/div/div/div[2]/div[3]/div/div/a/div/span";
-        WebElement loc = driver.findElementByXPath(findGeoposition);
-        loc.click();
-        
-        String point = "/html/body/div[7]/div/div/div/div/div/div/div/div[3]/div[2]/a[17]";
-        driver.findElementByXPath(point).click();
-        
-        String location = "Нижегородская область";
-        String newPath = "/html/body/div[1]/div[1]/div/div/div[4]/header/div/div/div/div[2]/div[3]/div/div/a/div/span";
-        
-        loc = driver.findElementByXPath(newPath);
-        Assert.assertEquals(location,loc.getText());
 
-        String footerPath = "/html/body/div[1]/div[4]/div/div/div/div[3]/footer";
-        WebElement element = driver.findElement(By.xpath(footerPath));
+        WebElement loc = driver.findElementByXPath(sberPaths.getFindGeoposition());
+        loc.click();
+
+        driver.findElementByXPath(sberPaths.getPoint()).click();
+
+        loc = driver.findElementByXPath(sberPaths.getNewPath());
+        Assert.assertTrue(loc.isDisplayed());
+
+        WebElement element = driver.findElement(By.xpath(sberPaths.getFooterPath()));
         driver.executeScript("arguments[0].scrollIntoView(true);", element);
 
-        WebDriverWait wait = new WebDriverWait(driver,10);
+        driver.manage().timeouts().implicitlyWait(5,TimeUnit.SECONDS);
 
-        String soc = "/html/body/div[1]/div[4]/div/div/div/div[3]/footer/div/div[2]/div[3]/ul";
-        WebElement social = driver.findElementByXPath(soc);
-        System.out.println(social.isDisplayed());
+        WebElement social = driver.findElementByXPath(sberPaths.getSoc());
+        Assert.assertTrue(social.isDisplayed());
     }
 }
